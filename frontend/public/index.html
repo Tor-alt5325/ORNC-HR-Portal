@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORNC HR Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6.9.0/dist/umd/react-router-dom.production.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .header-bg { background-color: #1a365d; }
+        .accent-color { color: #2b6cb0; }
+        .accent-bg { background-color: #2b6cb0; }
+        .accent-hover:hover { background-color: #1f4d7f; }
+        .speaker-btn { cursor: pointer; font-size: 14px; margin-left: 6px; opacity: 0.6; transition: opacity 0.2s; }
+        .speaker-btn:hover { opacity: 1; }
+        .rtl { direction: rtl; text-align: right; }
+        .ltr { direction: ltr; text-align: left; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback, useMemo } = React;
+        const { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams, useLocation } = window.ReactRouterDOM;
+
+        // ===========================
+        // TRANSLATIONS
+        // ===========================
+        const translations = {
+            de: {
+                dashboard: 'Übersicht',
+                fragebogen: 'Fragebogen-Einladung',
+                employees: 'Mitarbeiterliste',
+                contracts: 'Vertragserstellung',
+                templates: 'Vorlagenverwaltung',
+                shifts: 'Schichtplanung',
+                bonus: 'Bonus-Checkliste',
+                personio: 'Personio Integration',
+                users: 'Benutzerverwaltung',
+                logout: 'Abmelden',
+                login: 'Anmelden',
+                email: 'E-Mail',
+                password: 'Passwort',
+                totalEmployees: 'Gesamte Mitarbeiter',
+                pendingQuestionnaires: 'Ausstehende Fragebögen',
+                draftContracts: 'Entwürfe Verträge',
+                company: 'Unternehmen',
+                location: 'Standort',
+                profession: 'Beruf',
+                employmentType: 'Beschäftigungstyp',
+                language: 'Sprache',
+                applicantEmail: 'E-Mail des Bewerbers',
+                applicantName: 'Name des Bewerbers',
+                sendInvitation: 'Einladung senden',
+                personalData: 'Persönliche Daten',
+                salutation: 'Anrede',
+                firstName: 'Vorname',
+                lastName: 'Nachname',
+                birthDate: 'Geburtsdatum',
+                nationality: 'Nationalität',
+                address: 'Adresse',
+                street: 'Straße und Hausnummer',
+                zipCode: 'Postleitzahl',
+                city: 'Stadt',
+                country: 'Land',
+                taxSocialSecurity: 'Steuern & Sozialversicherung',
+                taxId: 'Steuer-ID',
+                socialSecurityNumber: 'Sozialversicherungsnummer',
+                taxClass: 'Steuerklasse',
+                churchTax: 'Kirchensteuer',
+                bankDetails: 'Bankdaten',
+                iban: 'IBAN',
+                bic: 'BIC',
+                healthInsurance: 'Krankenversicherung',
+                children: 'Kinder',
+                addChild: 'Kind hinzufügen',
+                removeChild: 'Kind entfernen',
+                birthCertificate: 'Geburtsurkunde',
+                university: 'Universität',
+                immatriculation: 'Immatrikulationsbescheinigung',
+                rvExemption: 'RV-Befreiung',
+                submit: 'Absenden',
+                search: 'Suchen',
+                filter: 'Filtern',
+                actions: 'Aktionen',
+                view: 'Anzeigen',
+                edit: 'Bearbeiten',
+                delete: 'Löschen',
+                back: 'Zurück',
+                save: 'Speichern',
+                cancel: 'Abbrechen',
+                selectOption: 'Auswählen...',
+                male: 'Herr',
+                female: 'Frau',
+                diverse: 'Divers',
+                fullTime: 'Vollzeit',
+                partTime: 'Teilzeit',
+                minijob: 'Minijob',
+                student: 'Werkstudent',
+                koch: 'Koch',
+                baecker: 'Bäcker',
+                generateContract: 'Vertrag generieren',
+                templates: 'Vorlagen',
+                termination: 'Kündigung',
+                supplement: 'Nachtrag',
+                autoCalculate: 'Automatisch berechnet',
+                terminationDate: 'Kündigungsdatum',
+                shifts: 'Schichten',
+                morning: '08:30-14:00',
+                afternoon: '13:00-20:00',
+                evening: '17:00-00:30',
+                dragEmployees: 'Mitarbeiter ziehen zum Einplanen',
+                staffing: 'Besetzung',
+                complete: 'Vollständig',
+                incomplete: 'Unvollständig',
+                wishDay: 'Wunschtag einreichen',
+                monthly: 'Monatlich',
+                evaluation: 'Bewertung',
+                criteria: 'Kriterien',
+                bonus: 'Bonus',
+                percentage: '%',
+                amount: 'Betrag',
+                sync: 'Synchronisieren',
+                push: 'Hochladen',
+                pull: 'Herunterladen',
+                status: 'Status',
+                created: 'Erstellt',
+                updated: 'Aktualisiert',
+                yes: 'Ja',
+                no: 'Nein',
+                required: 'Erforderlich',
+                invalidEmail: 'Ungültige E-Mail',
+                success: 'Erfolgreich',
+                error: 'Fehler',
+                loading: 'Wird geladen...',
+                noData: 'Keine Daten',
+                allLocations: 'Alle Standorte',
+                allStatuses: 'Alle Status',
+            },
+            en: {
+                dashboard: 'Dashboard',
+                fragebogen: 'Send Questionnaire',
+                employees: 'Employee List',
+                contracts: 'Generate Contracts',
+                templates: 'Template Management',
+                shifts: 'Shift Planning',
+                bonus: 'Bonus Checklist',
+                personio: 'Personio Integration',
+                users: 'User Management',
+                logout: 'Logout',
+                login: 'Login',
+                email: 'Email',
+                password: 'Password',
+                totalEmployees: 'Total Employees',
+                pendingQuestionnaires: 'Pending Questionnaires',
+                draftContracts: 'Draft Contracts',
+                company: 'Company',
+                location: 'Location',
+                profession: 'Profession',
+                employmentType: 'Employment Type',
+                language: 'Language',
+                applicantEmail: 'Applicant Email',
+                applicantName: 'Applicant Name',
+                sendInvitation: 'Send Invitation',
+                personalData: 'Personal Data',
+                salutation: 'Salutation',
+                firstName: 'First Name',
+                lastName: 'Last Name',
+                birthDate: 'Birth Date',
+                nationality: 'Nationality',
+                address: 'Address',
+                street: 'Street and Number',
+                zipCode: 'Zip Code',
+                city: 'City',
+                country: 'Country',
+                taxSocialSecurity: 'Tax & Social Security',
+                taxId: 'Tax ID',
+                socialSecurityNumber: 'Social Security Number',
+                taxClass: 'Tax Class',
+                churchTax: 'Church Tax',
+                bankDetails: 'Bank Details',
+                iban: 'IBAN',
+                bic: 'BIC',
+                healthInsurance: 'Health Insurance',
+                children: 'Children',
+                addChild: 'Add Child',
+                removeChild: 'Remove Child',
+                birthCertificate: 'Birth Certificate',
+                university: 'University',
+                immatriculation: 'Immatriculation Certificate',
+                rvExemption: 'RV Exemption',
+                submit: 'Submit',
+                search: 'Search',
+                filter: 'Filter',
+                actions: 'Actions',
+                view: 'View',
+                edit: 'Edit',
+                delete: 'Delete',
+                back: 'Back',
+                save: 'Save',
+                cancel: 'Cancel',
+                selectOption: 'Select...',
+                male: 'Mr.',
+                female: 'Ms.',
+                diverse: 'Other',
+                fullTime: 'Full-time',
+                partTime: 'Part-time',
+                minijob: 'Minijob',
+                student: 'Student Worker',
+                koch: 'Cook',
+                baecker: 'Baker',
+                generateContract: 'Generate Contract',
+                templates: 'Templates',
+                termination: 'Termination',
+                supplement: 'Supplement',
+                autoCalculate: 'Auto-calculated',
+                terminationDate: 'Termination Date',
+                shifts: 'Shifts',
+                morning: '08:30-14:00',
+                afternoon: '13:00-20:00',
+                evening: '17:00-00:30',
+                dragEmployees: 'Drag employees to schedule',
+                staffing: 'Staffing',
+                complete: 'Complete',
+                incomplete: 'Incomplete',
+                wishDay: 'Submit Wish Day',
+                monthly: 'Monthly',
+                evaluation: 'Evaluation',
+                criteria: 'Criteria',
+                bonus: 'Bonus',
+                percentage: '%',
+                amount: 'Amount',
+                sync: 'Synchronize',
+                push: 'Push',
+                pull: 'Pull',
+                status: 'Status',
+                created: 'Created',
+                updated: 'Updated',
+                yes: 'Yes',
+                no: 'No',
+                required: 'Required',
+                invalidEmail: 'Invalid email',
+                success: 'Success',
+                error: 'Error',
+                loading: 'Loading...',
+                noData: 'No data',
+                allLocations: 'All Locations',
+                allStatuses: 'All Statuses',
+            },
+        };
+
+        // Language options
+        const languageOptions = [
+            { value: 'de', label: 'Deutsch' },
+            { value: 'en', label: 'English' },
+            { value: 'bg', label: 'Български' },
+            { value: 'tr', label: 'Türkçe' },
+            { value: 'fa', label: 'فارسی' },
+            { value: 'hr', label: 'Hrvatski' },
+        ];
+
+        // ===========================
+        // UTILITY FUNCTIONS
+        // ===========================
+        function speakText(text, lang = 'de') {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang === 'fa' ? 'fa-IR' : lang === 'bg' ? 'bg-BG' : lang === 'tr' ? 'tr-TR' : lang === 'hr' ? 'hr-HR' : 'de-DE';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function getTranslation(key, lang = 'de') {
+            return translations[lang]?.[key] || translations.de[key] || key;
+        }
+
+        function getAuthToken() {
+            return localStorage.getItem('token');
+        }
+
+        function setAuthToken(token) {
+            localStorage.setItem('token', token);
+        }
+
+        function removeAuthToken() {
+            localStorage.removeItem('token');
+        }
+
+        async function apiCall(endpoint, method = 'GET', data = null, token = null) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const options = { method, headers };
+            if (data) options.body = JSON.stringify(data);
+
+            try {
+                const response = await fetch(`http://localhost:3001/api${endpoint}`, options);
+                if (!response.ok) throw new Error(`API error: ${response.status}`);
+                return await response.json();
+            } catch (err) {
+                console.error('API call failed:', err);
+                throw err;
+            }
+        }
+
+        // ===========================
+        // COMPONENTS
+        // ===========================
+
+        // Header Navigation
+        function Header() {
+            const navigate = useNavigate();
+            const [user, setUser] = useState(null);
+            const [language, setLanguage] = useState('de');
+            const token = getAuthToken();
+
+            useEffect(() => {
+                if (token) {
+                    apiCall('/auth/me', 'GET', null, token)
+                        .then(setUser)
+                        .catch(() => {
+                            removeAuthToken();
+                            navigate('/login');
+                        });
+                }
+            }, [token, navigate]);
+
+            const handleLogout = () => {
+                removeAuthToken();
+                navigate('/login');
+            };
+
+            if (!token) return null;
+
+            const t = (key) => getTranslation(key, language);
+            const canSeeAll = user?.role === 'admin' || user?.role === 'hr';
+
+            return (
+                <header className="header-bg text-white p-4 shadow-lg">
+                    <div className="max-w-7xl mx-auto flex justify-between items-center">
+                        <h1 className="text-2xl font-bold">ORNC HR Portal</h1>
+                        <nav className="flex gap-6 items-center">
+                            <a onClick={() => navigate('/dashboard')} className="cursor-pointer hover:opacity-80">{t('dashboard')}</a>
+                            {canSeeAll && (
+                                <>
+                                    <a onClick={() => navigate('/fragebogen')} className="cursor-pointer hover:opacity-80">{t('fragebogen')}</a>
+                                    <a onClick={() => navigate('/employees')} className="cursor-pointer hover:opacity-80">{t('employees')}</a>
+                                    <a onClick={() => navigate('/contracts')} className="cursor-pointer hover:opacity-80">{t('contracts')}</a>
+                                    <a onClick={() => navigate('/templates')} className="cursor-pointer hover:opacity-80">{t('templates')}</a>
+                                    <a onClick={() => navigate('/personio')} className="cursor-pointer hover:opacity-80">{t('personio')}</a>
+                                    <a onClick={() => navigate('/users')} className="cursor-pointer hover:opacity-80">{t('users')}</a>
+                                </>
+                            )}
+                            <a onClick={() => navigate('/shifts')} className="cursor-pointer hover:opacity-80">{t('shifts')}</a>
+                            <a onClick={() => navigate('/bonus')} className="cursor-pointer hover:opacity-80">{t('bonus')}</a>
+                            <select
+                                value={language}
+                                onChange={(e) => setLanguage(e.target.value)}
+                                className="bg-blue-800 text-white px-2 py-1 rounded text-sm"
+                            >
+                                {languageOptions.map(opt => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                            </select>
+                            <button
+                                onClick={handleLogout}
+                                className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition"
+                            >
+                                {t('logout')}
+                            </button>
+                        </nav>
+                    </div>
+                </header>
+            );
+        }
+
+        // Login Page
+        function LoginPage() {
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+            const navigate = useNavigate();
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError('');
+                try {
+                    const response = await apiCall('/auth/login', 'POST', { email, password });
+                    setAuthToken(response.token);
+                    navigate('/dashboard');
+                } catch (err) {
+                    setError('Login fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.');
+                }
+                setLoading(false);
+            };
+
+            return (
+                <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                    <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+                        <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">ORNC HR Portal</h1>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <input
+                                type="email"
+                                placeholder="E-Mail"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <input
+                                type="password"
+                                placeholder="Passwort"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            {error && <p className="text-red-600 text-sm">{error}</p>}
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full accent-bg text-white py-2 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50"
+                            >
+                                {loading ? 'Wird geladen...' : 'Anmelden'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        // Dashboard
+        function Dashboard() {
+            const [stats, setStats] = useState({ employees: 0, questionnaires: 0, contracts: 0 });
+            const [language] = useState('de');
+            const token = getAuthToken();
+
+            useEffect(() => {
+                apiCall('/dashboard/stats', 'GET', null, token).then(setStats).catch(console.error);
+            }, [token]);
+
+            const t = (key) => getTranslation(key, language);
+
+            return (
+                <div className="p-8">
+                    <h2 className="text-3xl font-bold mb-8 text-gray-800">{t('dashboard')}</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white rounded-lg shadow p-6 border-l-4 accent-bg">
+                            <p className="text-gray-600 mb-2">{t('totalEmployees')}</p>
+                            <p className="text-4xl font-bold accent-color">{stats.employees}</p>
+                        </div>
+                        <div className="bg-white rounded-lg shadow p-6 border-l-4 accent-bg">
+                            <p className="text-gray-600 mb-2">{t('pendingQuestionnaires')}</p>
+                            <p className="text-4xl font-bold accent-color">{stats.questionnaires}</p>
+                        </div>
+                        <div className="bg-white rounded-lg shadow p-6 border-l-4 accent-bg">
+                            <p className="text-gray-600 mb-2">{t('draftContracts')}</p>
+                            <p className="text-4xl font-bold accent-color">{stats.contracts}</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Fragebogen Einladung (Send Questionnaire)
+        function FragebogenEinladung() {
+            const [language] = useState('de');
+            const [formData, setFormData] = useState({
+                company: '',
+                location: '',
+                profession: '',
+                employmentType: '',
+                language: 'de',
+                applicantEmail: '',
+                applicantName: '',
+            });
+            const [locations, setLocations] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [message, setMessage] = useState('');
+            const token = getAuthToken();
+
+            const companies = ['ORNC GmbH', 'ORNC II', 'ORNC III'];
+            const locationMap = {
+                'ORNC GmbH': ['Berlin', 'Munich', 'Hamburg'],
+                'ORNC II': ['Frankfurt', 'Cologne', 'Stuttgart'],
+                'ORNC III': ['Düsseldorf', 'Dresden', 'Hannover'],
+            };
+            const professions = ['Koch', 'Bäcker'];
+            const employmentTypes = ['Vollzeit', 'Teilzeit', 'Minijob', 'Werkstudent'];
+
+            const handleCompanyChange = (company) => {
+                setFormData({ ...formData, company, location: '' });
+                setLocations(locationMap[company] || []);
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                try {
+                    await apiCall('/questionnaire/send-invitation', 'POST', formData, token);
+                    setMessage('Einladung erfolgreich versendet!');
+                    setFormData({
+                        company: '', location: '', profession: '', employmentType: '',
+                        language: 'de', applicantEmail: '', applicantName: '',
+                    });
+                    setTimeout(() => setMessage(''), 3000);
+                } catch (err) {
+                    setMessage('Fehler beim Versenden der Einladung.');
+                }
+                setLoading(false);
+            };
+
+            const t = (key) => getTranslation(key, language);
+
+            return (
+                <div className="p-8">
+                    <h2 className="text-3xl font-bold mb-8 text-gray-800">{t('fragebogen')}</h2>
+                    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 max-w-2xl">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-gray-700 font-semibold mb-2">{t('company')}</label>
+                                <select
+                                    value={formData.company}
+                                    onChange={(e) => handleCompanyChange(e.target.value)}
+                                    required
+                                    className="w-full px-4 py-2 border rounded-lg"
+                                >
+                                    <option value="">{t('selectOption')}</option>
+                                    {companies.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-gray-700 font-semibold mb-2">{t('location')}</label>
+                                <select
+                                    value={formData.location}
+                                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                    required
+                                    disabled={!formData.company}
+                                    className="w-full px-4 py-2 border rounded-lg disabled:opacity-50"
+                                >
+                                    <option value="">{t('selectOption')}</option>
+                                    {locations.map(l => <option key={l} value={l}>{l}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-gray-700 font-semibold mb-2">{t('profession')}</label>
+                                <select
+                                    value={formData.profession}
+                                    onChange={(e) => setFormData({ ...formData, profession: e.target.value })}
+                                    required
+                                    className="w-full px-4 py-2 border rounded-lg"
+                                >
+                                    <option value="">{t('selectOption')}</option>
+                                    {professions.map(p => <option key={p} value={p}>{p}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-gray-700 font-semibold mb-2">{t('employmentType')}</label>
+                                <select
+                                    value={formData.employmentType}
+                                    onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
+                                    required
+                                    className="w-full px-4 py-2 border rounded-lg"
+                                >
+                                    <option value="">{t('selectOption')}</option>
+                                    {employmentTypes.map(e => <option key={e} value={e}>{e}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-gray-700 font-semibold mb-2">{t('language')}</label>
+                                <select
+                                    value={formData.language}
+                                    onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                                    className="w-full px-4 py-2 border rounded-lg"
+                                >
+                                    {languageOptions.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <input
+                                type="email"
+                                placeholder={t('applicantEmail')}
+                                value={formData.applicantEmail}
+                                onChange={(e) => setFormData({ ...formData, applicantEmail: e.target.value })}
+                                required
+                                className="w-full px-4 py-2 border rounded-lg"
+                            />
+                            <input
+                                type="text"
+                                placeholder={t('applicantName')}
+                                value={formData.applicantName}
+                                onChange={(e) => setFormData({ ...formData, applicantName: e.target.value })}
+                                required
+                                className="w-full px-4 py-2 border rounded-lg"
+                            />
+                        </div>
+                        {message && <p className={`mt-4 text-sm ${message.includes('erfolgreich') ? 'text-green-600' : 'text-red-600'}`}>{message}</p>}
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="mt-6 w-full accent-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50"
+                        >
+                            {loading ? t('loading') : t('sendInvitation')}
+                        </button>
+                    </form>
+                </div>
+            );
+        }
+
+        // Public Questionnaire Page
+        function PublicQuestionnaire() {
+            const { uuid } = useParams();
+            const [language, setLanguage] = useState('de');
+            const [formData, setFormData] = useState({
+                salutation: '', firstName: '', lastName: '', birthDate: '', nationality: '',
+                street: '', zipCode: '', city: '', country: '',
+                taxId: '', socialSecurityNumber: '', taxClass: '', churchTax: false,
+                iban: '', bic: '', healthInsurance: '',
+                children: [], university: '', immatriculation: '', rvExemption: false,
+            });
+            const [children, setChildren] = useState([]);
+
+            const germanHealthInsurances = [
+                'AOK Bayern', 'AOK Berlin-Brandenburg', 'AOK Rheinland/Hamburg', 'AOK Niedersachsen',
+                'Techniker Krankenkasse', 'Barmer', 'DAK-Gesundheit', 'Kaufmännische Krankenkasse',
+                'BEK', 'SBK', 'Krankenkasse Menarini', 'HEK',
+            ];
+
+            const t = (key) => getTranslation(key, language);
+            const isRTL = language === 'fa';
+
+            const addChild = () => {
+                setChildren([...children, { name: '', birthDate: '', certificate: null }]);
+            };
+
+            const removeChild = (idx) => {
+                setChildren(children.filter((_, i) => i !== idx));
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                try {
+                    const data = { ...formData, children, uuid };
+                    const response = await apiCall('/questionnaire/submit', 'POST', data);
+                    alert('Fragebogen erfolgreich eingereicht!');
+                } catch (err) {
+                    alert('Fehler beim Einreichen des Fragebogens.');
+                }
+            };
+
+            const InputField = ({ label, name, type = 'text', required = false, ...props }) => (
+                <div>
+                    <label className="block text-gray-700 font-semibold mb-2">
+                        {label}
+                        <span
+                            className="speaker-btn"
+                            onClick={() => speakText(label, language)}
+                            title="Abspielen"
+                        >
+                            🔊
+                        </span>
+                        {required && <span className="text-red-600 ml-1">*</span>}
+                    </label>
+                    <input
+                        type={type}
+                        name={name}
+                        value={formData[name] || ''}
+                        onChange={(e) => setFormData({ ...formData, [name]: e.target.value })}
+                        required={required}
+                        className={`w-full px-4 py-2 border rounded-lg ${isRTL ? 'rtl' : 'ltr'}`}
+                        {...props}
+                    />
+                </div>
+            );
+
+            return (
+                <div className={`min-h-screen bg-gray-50 p-8 ${isRTL ? 'rtl' : 'ltr'}`}>
+                    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow p-8">
+                        <div className="flex justify-between items-center mb-8">
+                            <h1 className="text-3xl font-bold text-gray-800">Fragebogen</h1>
+                            <select
+                                value={language}
+                                onChange={(e) => setLanguage(e.target.value)}
+                                className="px-4 py-2 border rounded-lg"
+                            >
+                                {languageOptions.map(opt => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-8">
+                            {/* Personal Data */}
+                            <fieldset className="border-t-4 accent-bg pt-6">
+                                <legend className="text-xl font-bold text-gray-800 mb-6">{t('personalData')}</legend>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-2">
+                                            {t('salutation')}
+                                            <span className="speaker-btn" onClick={() => speakText(t('salutation'), language)}>🔊</span>
+                                        </label>
+                                        <select
+                                            value={formData.salutation}
+                                            onChange={(e) => setFormData({ ...formData, salutation: e.target.value })}
+                                            required
+                                            className="w-full px-4 py-2 border rounded-lg"
+                                        >
+                                            <option value="">{t('selectOption')}</option>
+                                            <option value="Herr">{t('male')}</option>
+                                            <option value="Frau">{t('female')}</option>
+                                            <option value="Divers">{t('diverse')}</option>
+                                        </select>
+                                    </div>
+                                    <InputField label={t('firstName')} name="firstName" required />
+                                    <InputField label={t('lastName')} name="lastName" required />
+                                    <InputField label={t('birthDate')} name="birthDate" type="date" required />
+                                    <InputField label={t('nationality')} name="nationality" />
+                                </div>
+                            </fieldset>
+
+                            {/* Address */}
+                            <fieldset className="border-t-4 accent-bg pt-6">
+                                <legend className="text-xl font-bold text-gray-800 mb-6">{t('address')}</legend>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <InputField label={t('street')} name="street" required />
+                                    <InputField label={t('zipCode')} name="zipCode" required />
+                                    <InputField label={t('city')} name="city" required />
+                                    <InputField label={t('country')} name="country" required />
+                                </div>
+                            </fieldset>
+
+                            {/* Tax & Social Security */}
+                            <fieldset className="border-t-4 accent-bg pt-6">
+                                <legend className="text-xl font-bold text-gray-800 mb-6">{t('taxSocialSecurity')}</legend>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <InputField label={t('taxId')} name="taxId" />
+                                    <InputField label={t('socialSecurityNumber')} name="socialSecurityNumber" />
+                                    <InputField label={t('taxClass')} name="taxClass" />
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-2">
+                                            {t('churchTax')}
+                                            <span className="speaker-btn" onClick={() => speakText(t('churchTax'), language)}>🔊</span>
+                                        </label>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.churchTax}
+                                            onChange={(e) => setFormData({ ...formData, churchTax: e.target.checked })}
+                                            className="w-4 h-4"
+                                        />
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            {/* Bank Details */}
+                            <fieldset className="border-t-4 accent-bg pt-6">
+                                <legend className="text-xl font-bold text-gray-800 mb-6">{t('bankDetails')}</legend>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <InputField label={t('iban')} name="iban" required />
+                                    <InputField label={t('bic')} name="bic" required />
+                                </div>
+                            </fieldset>
+
+                            {/* Health Insurance */}
+                            <fieldset className="border-t-4 accent-bg pt-6">
+                                <legend className="text-xl font-bold text-gray-800 mb-6">{t('healthInsurance')}</legend>
+                                <select
+                                    value={formData.healthInsurance}
+                                    onChange={(e) => setFormData({ ...formData, healthInsurance: e.target.value })}
+                                    required
+                                    className="w-full px-4 py-2 border rounded-lg"
+                                >
+                                    <option value="">{t('selectOption')}</option>
+                                    {germanHealthInsurances.map(hi => (
+                                        <option key={hi} value={hi}>{hi}</option>
+                                    ))}
+                                </select>
+                            </fieldset>
+
+                            {/* Children */}
+                            <fieldset className="border-t-4 accent-bg pt-6">
+                                <legend className="text-xl font-bold text-gray-800 mb-6">{t('children')}</legend>
+                                {children.map((child, idx) => (
+                                    <div key={idx} className="mb-6 p-4 bg-gray-50 rounded-lg">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <input
+                                                type="text"
+                                                placeholder={t('firstName')}
+                                                value={child.name}
+                                                onChange={(e) => {
+                                                    const newChildren = [...children];
+                                                    newChildren[idx].name = e.target.value;
+                                                    setChildren(newChildren);
+                                                }}
+                                                className="px-4 py-2 border rounded-lg"
+                                            />
+                                            <input
+                                                type="date"
+                                                value={child.birthDate}
+                                                onChange={(e) => {
+                                                    const newChildren = [...children];
+                                                    newChildren[idx].birthDate = e.target.value;
+                                                    setChildren(newChildren);
+                                                }}
+                                                className="px-4 py-2 border rounded-lg"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeChild(idx)}
+                                                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+                                            >
+                                                {t('removeChild')}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={addChild}
+                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                                >
+                                    {t('addChild')}
+                                </button>
+                            </fieldset>
+
+                            {/* Werkstudent Fields */}
+                            <fieldset className="border-t-4 accent-bg pt-6">
+                                <legend className="text-xl font-bold text-gray-800 mb-6">Werkstudent</legend>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <InputField label={t('university')} name="university" />
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-2">{t('immatriculation')}</label>
+                                        <input type="file" className="w-full px-4 py-2 border rounded-lg" />
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            {/* Minijob Fields */}
+                            <fieldset className="border-t-4 accent-bg pt-6">
+                                <legend className="text-xl font-bold text-gray-800 mb-6">Minijob</legend>
+                                <label className="block text-gray-700 font-semibold mb-2">
+                                    {t('rvExemption')}
+                                    <span className="speaker-btn" onClick={() => speakText(t('rvExemption'), language)}>🔊</span>
+                                </label>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.rvExemption}
+                                    onChange={(e) => setFormData({ ...formData, rvExemption: e.target.checked })}
+                                    className="w-4 h-4"
+                                />
+                            </fieldset>
+
+                            <button
+                                type="submit"
+                                className="w-full accent-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 text-lg"
+                            >
+                                {t('submit')}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        // Employee List
+        function EmployeeList() {
+            const [language] = useState('de');
+            const [employees, setEmployees] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [filterCompany, setFilterCompany] = useState('');
+            const [filterLocation, setFilterLocation] = useState('');
+            const [filterStatus, setFilterStatus] = useState('');
+            const navigate = useNavigate();
+            const token = getAuthToken();
+
+            useEffect(() => {
+                apiCall('/employees', 'GET', null, token)
+                    .then(setEmployees)
+                    .catch(console.error)
+                    .finally(() => setLoading(false));
+            }, [token]);
+
+            const t = (key) => getTranslation(key, language);
+
+            const filtered = employees.filter(emp =>
+                emp.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                (!filterCompany || emp.company === filterCompany) &&
+                (!filterLocation || emp.location === filterLocation) &&
+                (!filterStatus || emp.status === filterStatus)
+            );
+
+            if (loading) return <div className="p-8 text-center">{t('loading')}</div>;
+
+            return (
+                <div className="p-8">
+                    <h2 className="text-3xl font-bold mb-8 text-gray-800">{t('employees')}</h2>
+
+                    <div className="bg-white rounded-lg shadow p-6 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                            <input
+                                type="text"
+                                placeholder={t('search')}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="px-4 py-2 border rounded-lg"
+                            />
+                            <select
+                                value={filterCompany}
+                                onChange={(e) => setFilterCompany(e.target.value)}
+                                className="px-4 py-2 border rounded-lg"
+                            >
+                                <option value="">{t('allLocations')}</option>
+                                <option value="ORNC GmbH">ORNC GmbH</option>
+                                <option value="ORNC II">ORNC II</option>
+                                <option value="ORNC III">ORNC III</option>
+                            </select>
+                            <select
+                                value={filterLocation}
+                                onChange={(e) => setFilterLocation(e.target.value)}
+                                className="px-4 py-2 border rounded-lg"
+                            >
+                                <option value="">{t('allLocations')}</option>
+                                <option value="Berlin">Berlin</option>
+                                <option value="Munich">Munich</option>
+                                <option value="Hamburg">Hamburg</option>
+                            </select>
+                            <select
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                                className="px-4 py-2 border rounded-lg"
+                            >
+                                <option value="">{t('allStatuses')}</option>
+                                <option value="active">Aktiv</option>
+                                <option value="inactive">Inaktiv</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                        <table className="w-full">
+                            <thead className="header-bg text-white">
+                                <tr>
+                                    <th className="px-6 py-3 text-left">{t('firstName')}</th>
+                                    <th className="px-6 py-3 text-left">{t('company')}</th>
+                                    <th className="px-6 py-3 text-left">{t('location')}</th>
+                                    <th className="px-6 py-3 text-left">{t('status')}</th>
+                                    <th className="px-6 py-3 text-left">{t('actions')}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filtered.length === 0 ? (
+                                    <tr><td colSpan="5" className="px-6 py-4 text-center text-gray-500">{t('noData')}</td></tr>
+                                ) : (
+                                    filtered.map(emp => (
+                                        <tr key={emp.id} className="border-b hover:bg-gray-50">
+                                            <td className="px-6 py-3">{emp.name}</td>
+                                            <td className="px-6 py-3">{emp.company}</td>
+                                            <td className="px-6 py-3">{emp.location}</td>
+                                            <td className="px-6 py-3">{emp.status}</td>
+                                            <td className="px-6 py-3">
+                                                <button
+                                                    onClick={() => navigate(`/employee/${emp.id}`)}
+                                                    className="accent-color hover:underline"
+                                                >
+                                                    {t('view')}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        }
+
+        // Employee Detail
+        function EmployeeDetail() {
+            const { id } = useParams();
+            const [language] = useState('de');
+            const [employee, setEmployee] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const navigate = useNavigate();
+            const token = getAuthToken();
+
+            useEffect(() => {
+                apiCall(`/employees/${id}`, 'GET', null, token)
+                    .then(setEmployee)
+                    .catch(console.error)
+                    .finally(() => setLoading(false));
+            }, [id, token]);
+
+            const t = (key) => getTranslation(key, language);
+
+            if (loading) return <div className="p-8 text-center">{t('loading')}</div>;
+            if (!employee) return <div className="p-8 text-center text-red-600">Mitarbeiter nicht gefunden</div>;
+
+            return (
+                <div className="p-8">
+                    <button
+                        onClick={() => navigate('/employees')}
+                        className="mb-6 text-blue-600 hover:underline"
+                    >
+                        &larr; {t('back')}
+                    </button>
+                    <div className="bg-white rounded-lg shadow p-8">
+                        <h2 className="text-3xl font-bold mb-8 text-gray-800">{employee.name}</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-700 mb-4">Persönliche Informationen</h3>
+                                <p><span className="font-semibold">E-Mail:</span> {employee.email}</p>
+                                <p><span className="font-semibold">Telefon:</span> {employee.phone || 'N/A'}</p>
+                                <p><span className="font-semibold">Geburtsdatum:</span> {employee.birthDate || 'N/A'}</p>
+                                <p><span className="font-semibold">Nationalität:</span> {employee.nationality || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-700 mb-4">Arbeitsinformationen</h3>
+                                <p><span className="font-semibold">Unternehmen:</span> {employee.company}</p>
+                                <p><span className="font-semibold">Standort:</span> {employee.location}</p>
+                                <p><span className="font-semibold">Position:</span> {employee.profession}</p>
+                                <p><span className="font-semibold">Beschäftigungstyp:</span> {employee.employmentType}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Contracts
+        function Contracts() {
+            const [language] = useState('de');
+            const [contracts, setContracts] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const token = getAuthToken();
+
+            useEffect(() => {
+                apiCall('/contracts', 'GET', null, token)
+                    .then(setContracts)
+                    .catch(console.error)
+                    .finally(() => setLoading(false));
+            }, [token]);
+
+            const t = (key) => getTranslation(key, language);
+
+            if (loading) return <div className="p-8 text-center">{t('loading')}</div>;
+
+            return (
+                <div className="p-8">
+                    <h2 className="text-3xl font-bold mb-8 text-gray-800">{t('contracts')}</h2>
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                        <table className="w-full">
+                            <thead className="header-bg text-white">
+                                <tr>
+                                    <th className="px-6 py-3 text-left">Mitarbeiter</th>
+                                    <th className="px-6 py-3 text-left">{t('status')}</th>
+                                    <th className="px-6 py-3 text-left">{t('created')}</th>
+                                    <th className="px-6 py-3 text-left">{t('actions')}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {contracts.length === 0 ? (
+                                    <tr><td colSpan="4" className="px-6 py-4 text-center text-gray-500">{t('noData')}</td></tr>
+                                ) : (
+                                    contracts.map(contract => (
+                                        <tr key={contract.id} className="border-b hover:bg-gray-50">
+                                            <td className="px-6 py-3">{contract.employeeName}</td>
+                                            <td className="px-6 py-3">{contract.status}</td>
+                                            <td className="px-6 py-3">{new Date(contract.createdAt).toLocaleDateString('de-DE')}</td>
+                                            <td className="px-6 py-3">
+                                                <button className="accent-color hover:underline">{t('view')}</button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        }
+
+        // Templates
+        function Templates() {
+            const [language] = useState('de');
+            const [templates, setTemplates] = useState([]);
+            const [selectedTemplate, setSelectedTemplate] = useState(null);
+            const [employee, setEmployee] = useState(null);
+            const [calculatedTermination, setCalculatedTermination] = useState('');
+            const token = getAuthToken();
+
+            useEffect(() => {
+                apiCall('/templates', 'GET', null, token)
+                    .then(setTemplates)
+                    .catch(console.error);
+            }, [token]);
+
+            const t = (key) => getTranslation(key, language);
+
+            const calculateTerminationDate = (probationMonths = 0) => {
+                const today = new Date();
+                const date = new Date(today.setMonth(today.getMonth() + probationMonths + 1));
+                setCalculatedTermination(date.toLocaleDateString('de-DE'));
+            };
+
+            return (
+                <div className="p-8">
+                    <h2 className="text-3xl font-bold mb-8 text-gray-800">{t('templates')}</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {[
+                            { id: 'termination', name: t('termination'), description: 'Kündigungsschreiben' },
+                            { id: 'supplement', name: t('supplement'), description: 'Nachtragsvertrag' },
+                        ].map(template => (
+                            <div key={template.id} className="bg-white rounded-lg shadow p-6">
+                                <h3 className="text-xl font-bold mb-2 text-gray-800">{template.name}</h3>
+                                <p className="text-gray-600 mb-4">{template.description}</p>
+                                <button
+                                    onClick={() => setSelectedTemplate(template.id)}
+                                    className="accent-bg text-white px-4 py-2 rounded-lg hover:opacity-90"
+                                >
+                                    {t('generateContract')}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {selectedTemplate === 'termination' && (
+                        <div className="mt-8 bg-white rounded-lg shadow p-6 max-w-2xl">
+                            <h3 className="text-xl font-bold mb-4 text-gray-800">Kündigungsdatum berechnen</h3>
+                            <div className="space-y-4">
+                                <input
+                                    type="number"
+                                    placeholder="Probationsmonate"
+                                    min="0"
+                                    max="12"
+                                    onChange={(e) => calculateTerminationDate(parseInt(e.target.value) || 0)}
+                                    className="w-full px-4 py-2 border rounded-lg"
+                                />
+                                {calculatedTermination && (
+                                    <p className="text-lg font-semibold accent-color">
+                                        {t('terminationDate')}: {calculatedTermination}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Shift Planning
+        function ShiftPlanning() {
+            const [language] = useState('de');
+            const [selectedWeek, setSelectedWeek] = useState(new Date());
+            const [shifts, setShifts] = useState({});
+            const [employees, setEmployees] = useState([]);
+            const token = getAuthToken();
+
+            const t = (key) => getTranslation(key, language);
+            const shiftTypes = [
+                { id: 'morning', name: t('morning'), label: '08:30-14:00' },
+                { id: 'afternoon', name: t('afternoon'), label: '13:00-20:00' },
+                { id: 'evening', name: t('evening'), label: '17:00-00:30' },
+            ];
+
+            useEffect(() => {
+                apiCall('/employees', 'GET', null, token)
+                    .then(setEmployees)
+                    .catch(console.error);
+            }, [token]);
+
+            const days = Array.from({ length: 7 }, (_, i) => {
+                const date = new Date(selectedWeek);
+                date.setDate(date.getDate() + i);
+                return date;
+            });
+
+            const assignShift = (day, shiftId, employeeId) => {
+                const key = `${day.toDateString()}-${shiftId}`;
+                setShifts({
+                    ...shifts,
+                    [key]: employeeId,
+                });
+            };
+
+            return (
+                <div className="p-8">
+                    <h2 className="text-3xl font-bold mb-8 text-gray-800">{t('shifts')}</h2>
+                    <div className="mb-6 flex gap-4">
+                        <button
+                            onClick={() => setSelectedWeek(new Date(selectedWeek.getTime() - 7 * 24 * 60 * 60 * 1000))}
+                            className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                        >
+                            &larr; Vorherige Woche
+                        </button>
+                        <span className="text-lg font-semibold py-2">
+                            Woche vom {days[0].toLocaleDateString('de-DE')} - {days[6].toLocaleDateString('de-DE')}
+                        </span>
+                        <button
+                            onClick={() => setSelectedWeek(new Date(selectedWeek.getTime() + 7 * 24 * 60 * 60 * 1000))}
+                            className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                        >
+                            Nächste Woche &rarr;
+                        </button>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="header-bg text-white">
+                                <tr>
+                                    <th className="px-6 py-3 text-left">Schicht</th>
+                                    {days.map(day => (
+                                        <th key={day.toDateString()} className="px-6 py-3 text-center">
+                                            {day.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit' })}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {shiftTypes.map(shift => (
+                                    <tr key={shift.id} className="border-b">
+                                        <td className="px-6 py-3 font-semibold">{shift.name}</td>
+                                        {days.map(day => (
+                                            <td key={day.toDateString()} className="px-6 py-3 text-center border-l">
+                                                <select
+                                                    onChange={(e) => assignShift(day, shift.id, e.target.value)}
+                                                    className="px-2 py-1 border rounded text-sm"
+                                                >
+                                                    <option value="">Auswählen...</option>
+                                                    {employees.map(emp => (
+                                                        <option key={emp.id} value={emp.id}>
+                                                            {emp.name.split(' ')[0]}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        }
+
+        // Bonus Checklist
+        function BonusChecklist() {
+            const [language] = useState('de');
+            const [employees, setEmployees] = useState([]);
+            const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7));
+            const [evaluations, setEvaluations] = useState({});
+            const token = getAuthToken();
+
+            const t = (key) => getTranslation(key, language);
+
+            useEffect(() => {
+                apiCall('/employees', 'GET', null, token)
+                    .then(setEmployees)
+                    .catch(console.error);
+            }, [token]);
+
+            const criteria = [
+                { id: 'punctuality', label: 'Pünktlichkeit' },
+                { id: 'quality', label: 'Qualität der Arbeit' },
+                { id: 'teamwork', label: 'Teamfähigkeit' },
+                { id: 'initiatives', label: 'Eigeninitiative' },
+            ];
+
+            const calculateBonus = (checked) => {
+                const percentage = (checked / criteria.length) * 100;
+                if (percentage >= 75) return { percent: 15, rate: '15%' };
+                if (percentage >= 45) return { percent: 7.5, rate: '7.5%' };
+                return { percent: 0, rate: '0%' };
+            };
+
+            const updateEvaluation = (empId, criteriaId, checked) => {
+                const key = `${empId}-${selectedMonth}`;
+                const current = evaluations[key] || [];
+                const updated = checked
+                    ? [...current, criteriaId]
+                    : current.filter(c => c !== criteriaId);
+                setEvaluations({ ...evaluations, [key]: updated });
+            };
+
+            return (
+                <div className="p-8">
+                    <h2 className="text-3xl font-bold mb-8 text-gray-800">{t('bonus')}</h2>
+                    <div className="mb-6">
+                        <input
+                            type="month"
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(e.target.value)}
+                            className="px-4 py-2 border rounded-lg"
+                        />
+                    </div>
+
+                    <div className="space-y-6">
+                        {employees.map(emp => {
+                            const key = `${emp.id}-${selectedMonth}`;
+                            const checked = evaluations[key] || [];
+                            const bonus = calculateBonus(checked.length);
+                            const baseSalary = 2000; // Example base salary
+
+                            return (
+                                <div key={emp.id} className="bg-white rounded-lg shadow p-6">
+                                    <h3 className="text-xl font-bold mb-4 text-gray-800">{emp.name}</h3>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                        {criteria.map(crit => (
+                                            <label key={crit.id} className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={checked.includes(crit.id)}
+                                                    onChange={(e) => updateEvaluation(emp.id, crit.id, e.target.checked)}
+                                                    className="w-4 h-4"
+                                                />
+                                                <span className="text-gray-700">{crit.label}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                    <div className="border-t pt-4 flex justify-between items-center">
+                                        <div>
+                                            <p className="text-gray-600">Bonus: <span className="font-bold accent-color">{bonus.rate}</span></p>
+                                            <p className="text-gray-600">Betrag: <span className="font-bold accent-color">€{((baseSalary * bonus.percent) / 100).toFixed(2)}</span></p>
+                                        </div>
+                                        <button className="accent-bg text-white px-4 py-2 rounded-lg hover:opacity-90">
+                                            Speichern
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        }
+
+        // Personio Integration
+        function PersonioIntegration() {
+            const [language] = useState('de');
+            const [syncStatus, setSyncStatus] = useState({ lastSync: null, status: 'idle' });
+            const token = getAuthToken();
+
+            const t = (key) => getTranslation(key, language);
+
+            const handleSync = async (direction) => {
+                setSyncStatus({ ...syncStatus, status: 'syncing' });
+                try {
+                    await apiCall(`/personio/sync-${direction}`, 'POST', {}, token);
+                    setSyncStatus({ lastSync: new Date(), status: 'success' });
+                    setTimeout(() => setSyncStatus({ ...syncStatus, status: 'idle' }), 3000);
+                } catch (err) {
+                    setSyncStatus({ ...syncStatus, status: 'error' });
+                }
+            };
+
+            return (
+                <div className="p-8">
+                    <h2 className="text-3xl font-bold mb-8 text-gray-800">{t('personio')}</h2>
+                    <div className="bg-white rounded-lg shadow p-8 max-w-2xl">
+                        <div className="mb-8">
+                            <p className="text-gray-700 mb-4">Letzte Synchronisierung: {syncStatus.lastSync ? syncStatus.lastSync.toLocaleString('de-DE') : 'Niemals'}</p>
+                            <p className="text-gray-700 mb-6">Status: <span className={`font-bold ${syncStatus.status === 'success' ? 'text-green-600' : syncStatus.status === 'error' ? 'text-red-600' : 'text-gray-600'}`}>{syncStatus.status}</span></p>
+                        </div>
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => handleSync('push')}
+                                disabled={syncStatus.status === 'syncing'}
+                                className="accent-bg text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50"
+                            >
+                                {t('push')} (Hochladen)
+                            </button>
+                            <button
+                                onClick={() => handleSync('pull')}
+                                disabled={syncStatus.status === 'syncing'}
+                                className="accent-bg text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50"
+                            >
+                                {t('pull')} (Herunterladen)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // User Management
+        function UserManagement() {
+            const [language] = useState('de');
+            const [users, setUsers] = useState([]);
+            const [showForm, setShowForm] = useState(false);
+            const [formData, setFormData] = useState({ email: '', role: 'branch_manager', location: '' });
+            const token = getAuthToken();
+
+            const t = (key) => getTranslation(key, language);
+
+            useEffect(() => {
+                apiCall('/users', 'GET', null, token)
+                    .then(setUsers)
+                    .catch(console.error);
+            }, [token]);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                try {
+                    await apiCall('/users', 'POST', formData, token);
+                    setFormData({ email: '', role: 'branch_manager', location: '' });
+                    setShowForm(false);
+                    // Refresh users
+                    const updated = await apiCall('/users', 'GET', null, token);
+                    setUsers(updated);
+                } catch (err) {
+                    alert('Fehler beim Erstellen des Benutzers.');
+                }
+            };
+
+            return (
+                <div className="p-8">
+                    <h2 className="text-3xl font-bold mb-8 text-gray-800">{t('users')}</h2>
+
+                    {!showForm && (
+                        <button
+                            onClick={() => setShowForm(true)}
+                            className="mb-6 accent-bg text-white px-4 py-2 rounded-lg hover:opacity-90"
+                        >
+                            Neuer Benutzer
+                        </button>
+                    )}
+
+                    {showForm && (
+                        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 mb-6 max-w-2xl">
+                            <div className="space-y-4">
+                                <input
+                                    type="email"
+                                    placeholder={t('email')}
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    required
+                                    className="w-full px-4 py-2 border rounded-lg"
+                                />
+                                <select
+                                    value={formData.role}
+                                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                    className="w-full px-4 py-2 border rounded-lg"
+                                >
+                                    <option value="branch_manager">Branch Manager</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="hr">HR</option>
+                                </select>
+                                <input
+                                    type="text"
+                                    placeholder={t('location')}
+                                    value={formData.location}
+                                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                    className="w-full px-4 py-2 border rounded-lg"
+                                />
+                                <div className="flex gap-4">
+                                    <button type="submit" className="accent-bg text-white px-4 py-2 rounded-lg hover:opacity-90">
+                                        {t('save')}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowForm(false)}
+                                        className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                                    >
+                                        {t('cancel')}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    )}
+
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                        <table className="w-full">
+                            <thead className="header-bg text-white">
+                                <tr>
+                                    <th className="px-6 py-3 text-left">{t('email')}</th>
+                                    <th className="px-6 py-3 text-left">Rolle</th>
+                                    <th className="px-6 py-3 text-left">{t('location')}</th>
+                                    <th className="px-6 py-3 text-left">{t('actions')}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {users.length === 0 ? (
+                                    <tr><td colSpan="4" className="px-6 py-4 text-center text-gray-500">{t('noData')}</td></tr>
+                                ) : (
+                                    users.map(user => (
+                                        <tr key={user.id} className="border-b hover:bg-gray-50">
+                                            <td className="px-6 py-3">{user.email}</td>
+                                            <td className="px-6 py-3">{user.role}</td>
+                                            <td className="px-6 py-3">{user.location || '-'}</td>
+                                            <td className="px-6 py-3">
+                                                <button className="text-red-600 hover:underline">{t('delete')}</button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        }
+
+        // ===========================
+        // MAIN APP
+        // ===========================
+        function App() {
+            const token = getAuthToken();
+
+            return (
+                <BrowserRouter>
+                    <Header />
+                    <Routes>
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/questionnaire/:uuid" element={<PublicQuestionnaire />} />
+
+                        {token ? (
+                            <>
+                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path="/fragebogen" element={<FragebogenEinladung />} />
+                                <Route path="/employees" element={<EmployeeList />} />
+                                <Route path="/employee/:id" element={<EmployeeDetail />} />
+                                <Route path="/contracts" element={<Contracts />} />
+                                <Route path="/templates" element={<Templates />} />
+                                <Route path="/shifts" element={<ShiftPlanning />} />
+                                <Route path="/bonus" element={<BonusChecklist />} />
+                                <Route path="/personio" element={<PersonioIntegration />} />
+                                <Route path="/users" element={<UserManagement />} />
+                                <Route path="/" element={<Navigate to="/dashboard" />} />
+                            </>
+                        ) : (
+                            <Route path="*" element={<Navigate to="/login" />} />
+                        )}
+                    </Routes>
+                </BrowserRouter>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
