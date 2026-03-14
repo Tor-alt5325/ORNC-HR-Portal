@@ -1,1 +1,1 @@
-web: cd backend && python app.py --port=$PORT
+web: cd hr-portal/backend && python app.py --port=$PORT
