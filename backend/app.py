@@ -1266,7 +1266,7 @@ if __name__ == "__main__":
     init_db()
     seed_db()
     app = make_app()
-    app.listen(PORT)
+    app.listen(PORT, address="0.0.0.0")
     print(f"\n{'='*50}")
     print(f"  ORNC HR Portal running on http://localhost:{PORT}")
     print(f"  Admin Login: admin@ornc.de / admin123")
