@@ -1238,8 +1238,6 @@ class RootHandler(BaseHandler):
 
 def make_app():
     return tornado.web.Application([
-        # Root
-        (r"^/$", RootHandler),
         # Auth
         (r"/api/auth/login", LoginHandler),
         (r"/api/auth/me", MeHandler),
