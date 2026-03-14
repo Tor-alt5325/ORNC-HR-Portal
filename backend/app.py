@@ -1216,8 +1216,17 @@ class TranslationsHandler(BaseHandler):
 # ============================================================
 # APPLICATION
 # ============================================================
+class RootHandler(BaseHandler):
+    def get(self):
+        index_path = FRONTEND_DIR / "index.html"
+        with open(index_path, 'r', encoding='utf-8') as f:
+            self.set_header("Content-Type", "text/html; charset=utf-8")
+            self.write(f.read())
+
 def make_app():
     return tornado.web.Application([
+        # Root
+        (r"^/$", RootHandler),
         # Auth
         (r"/api/auth/login", LoginHandler),
         (r"/api/auth/me", MeHandler),
@@ -1268,7 +1277,7 @@ if __name__ == "__main__":
     app = make_app()
     app.listen(PORT, address="0.0.0.0")
     print(f"\n{'='*50}")
-    print(f"  ORNC HR Portal running on http://localhost:{PORT}")
+    print(f"  ORNC HR Portal running on 0.0.0.0:{PORT}")
     print(f"  Admin Login: admin@ornc.de / admin123")
     print(f"{'='*50}\n")
     tornado.ioloop.IOLoop.current().start()
