@@ -22,7 +22,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 UPLOAD_DIR = BASE_DIR / "uploads"
-FRONTEND_DIR = BASE_DIR.parent / "frontend" / "public"
+INDEX_HTML_PATH = BASE_DIR / "index.html"
 DATA_DIR.mkdir(exist_ok=True)
 UPLOAD_DIR.mkdir(exist_ok=True)
 (UPLOAD_DIR / "contracts").mkdir(exist_ok=True)
@@ -1219,25 +1219,17 @@ class TranslationsHandler(BaseHandler):
 class RootHandler(BaseHandler):
     def get(self):
         try:
-            index_path = FRONTEND_DIR / "index.html"
-            print(f"[DEBUG] RootHandler called for {self.request.path}")
-            print(f"[DEBUG] FRONTEND_DIR: {FRONTEND_DIR}")
-            print(f"[DEBUG] index_path exists: {index_path.exists()}")
-            if index_path.exists():
-                with open(index_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    self.set_header("Content-Type", "text/html; charset=utf-8")
-                    self.write(content)
-                    print(f"[DEBUG] Served index.html ({len(content)} bytes)")
-            else:
+            with open(INDEX_HTML_PATH, 'r', encoding='utf-8') as f:
                 self.set_header("Content-Type", "text/html; charset=utf-8")
-                self.write(f"<h1>ERROR: index.html not found</h1><p>Path: {index_path}</p><p>FRONTEND_DIR: {FRONTEND_DIR}</p>")
+                self.write(f.read())
         except Exception as e:
             self.set_header("Content-Type", "text/html; charset=utf-8")
-            self.write(f"<h1>ERROR in RootHandler</h1><pre>{str(e)}</pre>")
+            self.write(f"<h1>ERROR</h1><p>{str(e)}</p>")
 
 def make_app():
     return tornado.web.Application([
+        # WICHTIG: Root MUSS ERSTE sein!
+        (r"^/$", RootHandler),
         # Auth
         (r"/api/auth/login", LoginHandler),
         (r"/api/auth/me", MeHandler),
@@ -1277,8 +1269,6 @@ def make_app():
         (r"/api/translations", TranslationsHandler),
         # Health
         (r"/api/health", type('Health', (BaseHandler,), {'get': lambda self: self.write({"status": "ok"})})),
-        # Frontend static files
-        (r"/(.*)", tornado.web.StaticFileHandler, {"path": str(FRONTEND_DIR), "default_filename": "index.html"}),
     ], debug=True)
 
 if __name__ == "__main__":
